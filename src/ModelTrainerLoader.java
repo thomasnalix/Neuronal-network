@@ -34,18 +34,15 @@ public class ModelTrainerLoader extends JPanel {
 
     public void updateMap(World world) {
         Graphics g = buffer.getGraphics();
-        int cellSize = sizeScreenX / world.sizeX;
+        int cellSize = Math.max(sizeScreenY / world.sizeY, 2);
         Color color = new Color(52, 235, 152);
         for (int i = 0; i < world.sizeX; i++) {
             for (int j = 0; j < world.sizeY; j++) {
-                if (world.map[i][j] == 1) {
-                    g.setColor(Color.BLACK);
-                    g.fillRect(j * cellSize, i * cellSize, cellSize, cellSize);
-                } else if (world.map[i][j] == -1) {
+                if (world.map[i][j] == -1) {
                     g.setColor(color);
                     g.fillOval(j * cellSize, i * cellSize, cellSize, cellSize);
                 } else {
-                    g.setColor(Color.WHITE);
+                    g.setColor(Color.BLACK);
                     g.fillRect(j * cellSize, i * cellSize, cellSize, cellSize);
                 }
             }
@@ -83,10 +80,12 @@ public class ModelTrainerLoader extends JPanel {
      * @param threshold Select the best entities with a fitness >= threshold
      * @param mutationRate Apply a mutation rate between -mutationRate and +mutationRate to a random synapse
      * @param gui Enable the GUI
+     * @param keepBestBrain Keep the best brain of each generation
      */
-    public void train(int sizeX, int sizeY, int generations, int steps, int nbEntities, int threshold, double mutationRate, boolean gui) {
+    public void train(int sizeX, int sizeY, int generations, int steps, int nbEntities, int threshold, double mutationRate, boolean gui, boolean keepBestBrain) {
         World world = new World(sizeX, sizeY);
         Random random = new Random();
+        int bestScore = 0;
 
         if (gui) {
             JFrame frame = new JFrame("Training - Neural Network");
@@ -112,11 +111,14 @@ public class ModelTrainerLoader extends JPanel {
             int numberOfEntityWithFitness = (int) entities.stream().filter(entity -> entity.fitness >= threshold).count();
             System.out.println("Generation: " + gen + " - Number of entity with fitness > " + threshold + " : " + numberOfEntityWithFitness);
 
-            if (numberOfEntityWithFitness == nbEntities) break;
-
             List<Entity> entitiesGood = new ArrayList<>(entities.stream()
                     .filter(entity -> entity.fitness >= threshold)
                     .toList());
+
+            if (keepBestBrain && numberOfEntityWithFitness > bestScore) {
+                bestScore = numberOfEntityWithFitness;
+                entitiesGood.get(0).brain.saveToFile("best_brain.txt");
+            }
 
             world.reset();
             for (Entity goodEntity : entitiesGood) {
@@ -137,7 +139,7 @@ public class ModelTrainerLoader extends JPanel {
                 world.addEntityToMap(entity);
             }
         }
-        world.getEntities().get(0).brain.saveToFile("best_brain.txt");
+        if (!keepBestBrain) world.getEntities().get(0).brain.saveToFile("best_brain.txt");
         if (gui) {
             JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
             frame.dispose();

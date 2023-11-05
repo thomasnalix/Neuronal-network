@@ -13,7 +13,7 @@ public class Main {
 
     public static void main(String[] args) {
         ModelTrainerLoader cartePanel = new ModelTrainerLoader(SCREEN_X, SCREEN_Y);
-        cartePanel.train(SIZE_X, SIZE_Y,GENERATIONS, STEPS, NUM_ENTITIES, THRESHOLD, MUTATION_RATE, false);
+        cartePanel.train(SIZE_X, SIZE_Y,GENERATIONS, STEPS, NUM_ENTITIES, THRESHOLD, MUTATION_RATE, false, true);
         cartePanel.load(SIZE_X, SIZE_Y);
     }
 }
